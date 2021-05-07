@@ -875,6 +875,7 @@ name = "trello-velocity-calculator"
 version = "2021.5.0"
 dependencies = [
  "reqwest",
+ "serde",
  "tokio",
  "toml",
 ]
