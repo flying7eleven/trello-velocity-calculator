@@ -1,4 +1,4 @@
-use reqwest::Error as ReqwestError;
+use reqwest::{get, Error as ReqwestError};
 use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::prelude::*;
@@ -54,7 +54,21 @@ fn load_configuration() -> Configuration {
 
 #[tokio::main]
 async fn main() -> Result<(), ReqwestError> {
-    let _configuration = load_configuration();
+    let configuration = load_configuration();
+
+    let res = get(format!(
+        "https://api.trello.com/1/boards/{board_id}/cards?key={key}&token={token}",
+        board_id = configuration.trello.board.id,
+        key = configuration.trello.api.key,
+        token = configuration.trello.api.token
+    ))
+    .await?;
+
+    println!("Status: {}", res.status());
+
+    let body = res.text().await?;
+
+    println!("Body:\n\n{}", body);
 
     Ok(())
 }
