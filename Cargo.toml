@@ -13,3 +13,7 @@ features = ["native-tls"]
 version = "1.5"
 default-features = false
 features = ["full"]
+
+[dependencies.toml]
+version = "0.5"
+default-features = false
