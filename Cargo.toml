@@ -3,3 +3,7 @@ name = "trello-velocity-calculator"
 version = "0.1.0"
 authors = ["Tim Hütz <tim+github@janke.biz>"]
 edition = "2018"
+
+[dependencies.reqwest]
+version = "0.11"
+default-features = false
