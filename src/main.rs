@@ -11,8 +11,14 @@ struct ApiSettings {
 }
 
 #[derive(Serialize, Deserialize)]
+struct BoardSettings {
+    id: String,
+}
+
+#[derive(Serialize, Deserialize)]
 struct TrelloSettings {
     api: ApiSettings,
+    board: BoardSettings,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -41,6 +47,7 @@ fn load_configuration() -> Configuration {
                 key: "".to_string(),
                 token: "".to_string(),
             },
+            board: BoardSettings { id: "".to_string() },
         },
     }
 }
