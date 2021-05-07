@@ -1,0 +1,6 @@
+[trello.api]
+key = ""
+token = ""
+
+[trello.board]
+id = ""
