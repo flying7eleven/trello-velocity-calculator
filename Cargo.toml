@@ -25,3 +25,8 @@ default-features = false
 [dependencies.serde_derive]
 version = "1.0"
 default-features = false
+
+[dependencies.clap]
+version = "3.0.0-beta.2"
+default-features = false
+features = ["std", "derive", "color"]
