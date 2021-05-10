@@ -4,3 +4,8 @@ token = ""
 
 [trello.board]
 id = ""
+
+[trello.lists]
+backlog_id = ""
+doing_id = ""
+done_id = ""
