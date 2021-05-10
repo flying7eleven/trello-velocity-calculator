@@ -15,9 +15,17 @@ pub struct BoardSettings {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct ListSettings {
+    pub backlog_id: String,
+    pub doing_id: String,
+    pub done_id: String,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct TrelloSettings {
     pub api: ApiSettings,
     pub board: BoardSettings,
+    pub lists: ListSettings,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -47,6 +55,11 @@ pub fn load_configuration() -> Configuration {
                 token: "".to_string(),
             },
             board: BoardSettings { id: "".to_string() },
+            lists: ListSettings {
+                backlog_id: "".to_string(),
+                doing_id: "".to_string(),
+                done_id: "".to_string(),
+            },
         },
     }
 }
