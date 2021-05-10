@@ -27,3 +27,8 @@ features = ["derive"]
 version = "3.0.0-beta.2"
 default-features = false
 features = ["std", "derive", "color"]
+
+[dependencies.cli-table]
+version = "0.4"
+default-features = false
+features = ["derive"]
