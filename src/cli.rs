@@ -12,6 +12,7 @@ pub struct Opts {
 #[derive(Clap)]
 pub enum SubCommand {
     ShowListsOfBoard(ShowListsOfBoard),
+    ShowVelocity(ShowVelocity),
 }
 
 /// This sub-command can be used to show the available lists of a specific board (for the initial configuration)
@@ -20,3 +21,7 @@ pub struct ShowListsOfBoard {
     /// The board id for which the available lists should be displayed
     pub board_id: String,
 }
+
+/// This sub-command can be used to show the velocity of the current sprint
+#[derive(Clap)]
+pub struct ShowVelocity {}

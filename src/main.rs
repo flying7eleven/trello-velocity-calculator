@@ -35,6 +35,27 @@ async fn show_lists_of_board(board_id: &String, config: &Configuration) {
     }
 }
 
+#[derive(Table)]
+struct VelocityInformation {
+    #[table(title = "Story points to do", justify = "Justify::Left")]
+    points_todo: u8,
+    #[table(title = "Story points doing", justify = "Justify::Left")]
+    points_doing: u8,
+    #[table(title = "Story points done", justify = "Justify::Left")]
+    points_done: u8,
+}
+
+async fn show_velocity(_config: &Configuration) {
+    print_stdout(
+        vec![VelocityInformation {
+            points_todo: 1,
+            points_doing: 1,
+            points_done: 1,
+        }]
+        .with_title(),
+    );
+}
+
 #[tokio::main]
 async fn main() -> Result<(), ReqwestError> {
     // get the passed arguments as well as the configuration from the file
@@ -45,6 +66,9 @@ async fn main() -> Result<(), ReqwestError> {
     match opts.subcmd {
         SubCommand::ShowListsOfBoard(show_lists) => {
             show_lists_of_board(&show_lists.board_id, &configuration).await;
+        }
+        SubCommand::ShowVelocity(_) => {
+            show_velocity(&configuration).await;
         }
     }
 
