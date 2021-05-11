@@ -9,9 +9,24 @@ pub struct ApiSettings {
     pub token: String,
 }
 
+impl Default for ApiSettings {
+    fn default() -> Self {
+        ApiSettings {
+            key: "".to_string(),
+            token: "".to_string(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct BoardSettings {
     pub id: String,
+}
+
+impl Default for BoardSettings {
+    fn default() -> Self {
+        BoardSettings { id: "".to_string() }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -21,6 +36,16 @@ pub struct ListSettings {
     pub done_id: String,
 }
 
+impl Default for ListSettings {
+    fn default() -> Self {
+        ListSettings {
+            backlog_id: "".to_string(),
+            doing_id: "".to_string(),
+            done_id: "".to_string(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct TrelloSettings {
     pub api: ApiSettings,
@@ -28,9 +53,27 @@ pub struct TrelloSettings {
     pub lists: ListSettings,
 }
 
+impl Default for TrelloSettings {
+    fn default() -> Self {
+        TrelloSettings {
+            api: ApiSettings::default(),
+            board: BoardSettings::default(),
+            lists: ListSettings::default(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Configuration {
     pub trello: TrelloSettings,
+}
+
+impl Default for Configuration {
+    fn default() -> Self {
+        Configuration {
+            trello: TrelloSettings::default(),
+        }
+    }
 }
 
 pub fn load_configuration() -> Configuration {
@@ -48,18 +91,5 @@ pub fn load_configuration() -> Configuration {
     }
 
     // if we reach this step, we could not read any configuration file and return an empty one
-    Configuration {
-        trello: TrelloSettings {
-            api: ApiSettings {
-                key: "".to_string(),
-                token: "".to_string(),
-            },
-            board: BoardSettings { id: "".to_string() },
-            lists: ListSettings {
-                backlog_id: "".to_string(),
-                doing_id: "".to_string(),
-                done_id: "".to_string(),
-            },
-        },
-    }
+    Configuration::default()
 }
