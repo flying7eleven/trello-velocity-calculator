@@ -19,7 +19,7 @@ pub enum SubCommand {
 #[derive(Clap)]
 pub struct ShowListsOfBoard {
     /// The board id for which the available lists should be displayed
-    pub board_id: String,
+    pub board_id: Option<String>,
 }
 
 /// This sub-command can be used to show the velocity of the current sprint

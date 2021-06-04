@@ -109,7 +109,15 @@ async fn main() -> Result<(), ReqwestError> {
     // handle the corresponding sub-command
     match opts.subcmd {
         SubCommand::ShowListsOfBoard(show_lists) => {
-            show_lists_of_board(&show_lists.board_id, &configuration).await;
+            if let Some(supplied_board_id) = show_lists.board_id {
+                show_lists_of_board(&supplied_board_id, &configuration).await;
+            } else {
+                if !configuration.trello.board.id.is_empty() {
+                    show_lists_of_board(&configuration.trello.board.id, &configuration).await;
+                } else {
+                    println!("You have to supply a board id via the configuration file or the command line.")
+                }
+            }
         }
         SubCommand::ShowVelocity(_) => {
             show_velocity(&configuration).await;
