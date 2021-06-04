@@ -2,6 +2,7 @@ use crate::cli::{Opts, SubCommand};
 use crate::configuration::{load_configuration, Configuration};
 use clap::Clap;
 use cli_table::{format::Justify, print_stdout, Table, WithTitle};
+use lazy_static::lazy_static;
 use reqwest::{get, Error as ReqwestError};
 use serde::{Deserialize, Serialize};
 
@@ -14,6 +15,15 @@ struct BoardLists {
     #[table(title = "ID", justify = "Justify::Left")]
     id: String,
     #[table(title = "List name", justify = "Justify::Left")]
+    name: String,
+}
+
+#[derive(Table, Serialize, Deserialize)]
+#[serde(rename_all(serialize = "camelCase"))]
+struct CardsOfList {
+    #[table(title = "ID", justify = "Justify::Left")]
+    id: String,
+    #[table(title = "Title", justify = "Justify::Left")]
     name: String,
 }
 
@@ -45,12 +55,46 @@ struct VelocityInformation {
     points_done: u8,
 }
 
-async fn show_velocity(_config: &Configuration) {
-    print_stdout(
+async fn get_velocity_for_list(config: &Configuration, list_id: &String) -> u8 {
+    use regex::Regex;
+
+    lazy_static! {
+        static ref VELOCITY_RE: Regex = Regex::new(r"^\(([1-9]{1,2})(\*{0,3})\)").unwrap();
+    }
+
+    if let Ok(response) = get(format!(
+        "https://api.trello.com/1/lists/{list_id}/cards?key={key}&token={token}",
+        list_id = list_id,
+        key = config.trello.api.key,
+        token = config.trello.api.token
+    ))
+    .await
+    {
+        match response.json::<Vec<CardsOfList>>().await {
+            Ok(available_cards) => {
+                let mut aggregated_velocity = 0 as u8;
+                for current_card in available_cards {
+                    let maybe_captures = VELOCITY_RE.captures(current_card.name.as_str());
+                    if let Some(captures) = maybe_captures {
+                        let velocity = &captures[1].parse::<u8>().unwrap();
+                        aggregated_velocity += velocity;
+                    }
+                }
+                return aggregated_velocity;
+            }
+            Err(error) => println!("{}", error),
+        }
+    }
+
+    return 0;
+}
+
+async fn show_velocity(config: &Configuration) {
+    let _ = print_stdout(
         vec![VelocityInformation {
-            points_todo: 1,
-            points_doing: 1,
-            points_done: 1,
+            points_todo: get_velocity_for_list(config, &config.trello.lists.backlog_id).await,
+            points_doing: get_velocity_for_list(config, &config.trello.lists.doing_id).await,
+            points_done: get_velocity_for_list(config, &config.trello.lists.done_id).await,
         }]
         .with_title(),
     );
