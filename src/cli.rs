@@ -12,8 +12,8 @@ pub struct Opts {
 #[derive(Clap)]
 pub enum SubCommand {
     ShowListsOfBoard(ShowListsOfBoard),
-    ShowVelocity(ShowVelocity),
-    StoreSprintVelocity(StoreSprintVelocity),
+    ShowCurrentVelocity(ShowCurrentVelocity),
+    AddSprintVelocity(AddSprintVelocity),
     AddSprintVelocityManually(AddSprintVelocityManually),
 }
 
@@ -26,11 +26,11 @@ pub struct ShowListsOfBoard {
 
 /// This sub-command can be used to show the velocity of the current sprint
 #[derive(Clap)]
-pub struct ShowVelocity {}
+pub struct ShowCurrentVelocity {}
 
 /// This sub-command can be used to store the velocity for the current sprint
 #[derive(Clap)]
-pub struct StoreSprintVelocity {}
+pub struct AddSprintVelocity {}
 
 /// This sub-command can be used to store the velocity of a  sprint manually
 #[derive(Clap)]

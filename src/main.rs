@@ -214,10 +214,10 @@ async fn main() -> Result<(), ReqwestError> {
                 }
             }
         }
-        SubCommand::ShowVelocity(_) => {
+        SubCommand::ShowCurrentVelocity(_) => {
             show_velocity(&configuration).await;
         }
-        SubCommand::StoreSprintVelocity(_) => {
+        SubCommand::AddSprintVelocity(_) => {
             query_and_store_sprint_velocity(&configuration).await;
         }
         SubCommand::AddSprintVelocityManually(sprint_velocity_infos) => {
