@@ -89,6 +89,90 @@ async fn get_velocity_for_list(config: &Configuration, list_id: &String) -> u8 {
     return 0;
 }
 
+async fn get_last_sprint_number() -> u8 {
+    use unqlite::{UnQLite, KV};
+
+    // open the database in which we store the sprint number
+    let sprint_db = UnQLite::open_readonly("sprint.db");
+
+    // if there is a value stored, return the last sprint number
+    if let Ok(value) = sprint_db.kv_fetch("last_sprint_number") {
+        return value[0];
+    }
+
+    // if seems there was no sprint info stored so far, the last sprint is assumed to be
+    // zero
+    0
+}
+
+async fn store_sprint_information(sprint_number: u8, finished_story_points: u8) {
+    use unqlite::{Transaction, UnQLite, KV};
+
+    // open the database where we store everything and open a transaction
+    let sprint_db = UnQLite::create("sprint.db");
+    let _ = sprint_db.begin();
+
+    // write the corresponding values
+    let _ = sprint_db.kv_store("last_sprint_number", vec![sprint_number]);
+    let _ = sprint_db.kv_store(
+        format!("velocity.{}", sprint_number),
+        vec![finished_story_points],
+    );
+
+    // finish the transaction
+    let _ = sprint_db.commit();
+}
+
+async fn ask_yes_no_question(question: String) -> bool {
+    use ncurses::{addstr, endwin, getch, initscr, refresh};
+
+    // initialize the library for interacting with the user
+    let mut user_response = false;
+    initscr();
+
+    // keep asking the user until we get a yes or no answer
+    loop {
+        addstr(format!("{} [y/n]", question).as_str());
+        refresh();
+
+        match getch() as u8 as char {
+            'Y' | 'y' => user_response = true,
+            'N' | 'n' => user_response = false,
+            _ => {
+                addstr("\n");
+                continue;
+            }
+        }
+        break;
+    }
+
+    // clean up and return the result
+    refresh();
+    endwin();
+    user_response
+}
+
+async fn store_sprint_velocity(config: &Configuration) {
+    let finished_story_points = get_velocity_for_list(config, &config.trello.lists.done_id).await;
+    let assumed_sprint_number = get_last_sprint_number().await + 1;
+
+    // ask the user if the determined information are correct or not
+    let information_correct = ask_yes_no_question(format!(
+        "Is it correct that you finished {} velocity point(s) in your {}. sprint?",
+        finished_story_points, assumed_sprint_number
+    ))
+    .await;
+
+    // if the information are not correct, skip the storing of the information
+    if !information_correct {
+        println!("Aborting!");
+        return;
+    }
+
+    // store the information about the sprint in the database
+    store_sprint_information(assumed_sprint_number, finished_story_points).await;
+}
+
 async fn show_velocity(config: &Configuration) {
     let _ = print_stdout(
         vec![VelocityInformation {
@@ -121,6 +205,9 @@ async fn main() -> Result<(), ReqwestError> {
         }
         SubCommand::ShowVelocity(_) => {
             show_velocity(&configuration).await;
+        }
+        SubCommand::StoreSprintVelocity(_) => {
+            store_sprint_velocity(&configuration).await;
         }
     }
 
