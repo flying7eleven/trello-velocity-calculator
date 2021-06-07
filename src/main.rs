@@ -367,7 +367,7 @@ async fn main() -> Result<(), ReqwestError> {
             show_stored_velocities().await;
         }
         SubCommand::PlotVelocityGraph(options) => {
-            plot_velocity_graph(&options.output_file_name, 1024, 768).await;
+            plot_velocity_graph(&options.output_file_name, 1920, 1080).await;
         }
     }
 
