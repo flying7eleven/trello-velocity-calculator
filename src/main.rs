@@ -55,6 +55,16 @@ struct VelocityInformation {
     points_done: u8,
 }
 
+#[derive(Table)]
+struct SprintVelocityInformation {
+    #[table(title = "Sprint #", justify = "Justify::Left")]
+    sprint_number: u8,
+    #[table(title = "Velocity (for sprint)", justify = "Justify::Left")]
+    current_velocity: u8,
+    #[table(title = "Velocity (running)", justify = "Justify::Left")]
+    running_velocity: f32,
+}
+
 async fn get_velocity_for_list(config: &Configuration, list_id: &String) -> u8 {
     use regex::Regex;
 
@@ -184,6 +194,47 @@ async fn store_sprint_velocity(assumed_sprint_number: u8, finished_story_points:
     store_sprint_information(assumed_sprint_number, finished_story_points).await;
 }
 
+async fn show_stored_velocities() {
+    use unqlite::{Cursor, UnQLite};
+
+    // open the database in which we store the velocities
+    let sprint_db = UnQLite::open_readonly("sprint.db");
+
+    // a list for all entries we found
+    let mut found_entries: Vec<SprintVelocityInformation> = vec![];
+
+    // loop through the entries and collect the required information
+    let mut maybe_entry = sprint_db.first();
+    let mut sum_of_velocities: u16 = 0;
+    while maybe_entry.is_some() {
+        // get the actual entry
+        let record = maybe_entry.unwrap();
+
+        // if we have a velocity entry, add it to the list of entries
+        let key = record
+            .key()
+            .into_iter()
+            .map(|c| c as char)
+            .collect::<String>();
+        if key.starts_with("velocity.") {
+            let current_sprint = key.replace("velocity.", "").parse::<u8>().unwrap();
+            let current_velocity = record.value()[0];
+            sum_of_velocities += u16::from(current_velocity);
+
+            found_entries.push(SprintVelocityInformation {
+                sprint_number: current_sprint,
+                current_velocity,
+                running_velocity: sum_of_velocities as f32 / (found_entries.len() + 1) as f32,
+            })
+        }
+
+        // and go to the next one
+        maybe_entry = record.next();
+    }
+
+    let _ = print_stdout(found_entries.with_title());
+}
+
 async fn show_velocity(config: &Configuration) {
     let _ = print_stdout(
         vec![VelocityInformation {
@@ -226,6 +277,9 @@ async fn main() -> Result<(), ReqwestError> {
                 sprint_velocity_infos.velocity,
             )
             .await;
+        }
+        SubCommand::ShowStoredVelocities(_) => {
+            show_stored_velocities().await;
         }
     }
 
