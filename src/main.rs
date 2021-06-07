@@ -108,12 +108,19 @@ async fn get_last_sprint_number() -> u8 {
 async fn store_sprint_information(sprint_number: u8, finished_story_points: u8) {
     use unqlite::{Transaction, UnQLite, KV};
 
+    // get the last known sprint number
+    let last_stored_sprint_number = get_last_sprint_number().await;
+
     // open the database where we store everything and open a transaction
     let sprint_db = UnQLite::create("sprint.db");
     let _ = sprint_db.begin();
 
-    // write the corresponding values
-    let _ = sprint_db.kv_store("last_sprint_number", vec![sprint_number]);
+    // just update the last stored sprint number, if it is a new one
+    if last_stored_sprint_number < sprint_number {
+        let _ = sprint_db.kv_store("last_sprint_number", vec![sprint_number]);
+    }
+
+    // write the velocity of the sprint
     let _ = sprint_db.kv_store(
         format!("velocity.{}", sprint_number),
         vec![finished_story_points],
@@ -152,10 +159,14 @@ async fn ask_yes_no_question(question: String) -> bool {
     user_response
 }
 
-async fn store_sprint_velocity(config: &Configuration) {
+async fn query_and_store_sprint_velocity(config: &Configuration) {
     let finished_story_points = get_velocity_for_list(config, &config.trello.lists.done_id).await;
     let assumed_sprint_number = get_last_sprint_number().await + 1;
 
+    store_sprint_velocity(assumed_sprint_number, finished_story_points).await;
+}
+
+async fn store_sprint_velocity(assumed_sprint_number: u8, finished_story_points: u8) {
     // ask the user if the determined information are correct or not
     let information_correct = ask_yes_no_question(format!(
         "Is it correct that you finished {} velocity point(s) in your {}. sprint?",
@@ -207,7 +218,14 @@ async fn main() -> Result<(), ReqwestError> {
             show_velocity(&configuration).await;
         }
         SubCommand::StoreSprintVelocity(_) => {
-            store_sprint_velocity(&configuration).await;
+            query_and_store_sprint_velocity(&configuration).await;
+        }
+        SubCommand::AddSprintVelocityManually(sprint_velocity_infos) => {
+            store_sprint_velocity(
+                sprint_velocity_infos.sprint_number,
+                sprint_velocity_infos.velocity,
+            )
+            .await;
         }
     }
 

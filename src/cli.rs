@@ -14,6 +14,7 @@ pub enum SubCommand {
     ShowListsOfBoard(ShowListsOfBoard),
     ShowVelocity(ShowVelocity),
     StoreSprintVelocity(StoreSprintVelocity),
+    AddSprintVelocityManually(AddSprintVelocityManually),
 }
 
 /// This sub-command can be used to show the available lists of a specific board (for the initial configuration)
@@ -30,3 +31,12 @@ pub struct ShowVelocity {}
 /// This sub-command can be used to store the velocity for the current sprint
 #[derive(Clap)]
 pub struct StoreSprintVelocity {}
+
+/// This sub-command can be used to store the velocity of a  sprint manually
+#[derive(Clap)]
+pub struct AddSprintVelocityManually {
+    /// The number which identifies the sprint
+    pub sprint_number: u8,
+    /// The number of velocity points finished in the given sprint
+    pub velocity: u8,
+}
