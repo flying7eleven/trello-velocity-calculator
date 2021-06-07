@@ -14,6 +14,7 @@ pub enum SubCommand {
     ShowListsOfBoard(ShowListsOfBoard),
     ShowCurrentVelocity(ShowCurrentVelocity),
     ShowStoredVelocities(ShowStoredVelocities),
+    PlotVelocityGraph(PlotVelocityGraph),
     AddSprintVelocity(AddSprintVelocity),
     AddSprintVelocityManually(AddSprintVelocityManually),
 }
@@ -32,6 +33,14 @@ pub struct ShowCurrentVelocity {}
 /// Show all stored velocity information of the past sprints
 #[derive(Clap)]
 pub struct ShowStoredVelocities {}
+
+/// Plot the graph for the currently available velocity information
+#[derive(Clap)]
+pub struct PlotVelocityGraph {
+    /// The name of the file in which the plot should be stored
+    #[clap(default_value = "velocities.png")]
+    pub output_file_name: String,
+}
 
 /// This sub-command can be used to store the velocity for the current sprint
 #[derive(Clap)]

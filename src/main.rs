@@ -194,7 +194,7 @@ async fn store_sprint_velocity(assumed_sprint_number: u8, finished_story_points:
     store_sprint_information(assumed_sprint_number, finished_story_points).await;
 }
 
-async fn show_stored_velocities() {
+async fn get_stored_velocities() -> Vec<SprintVelocityInformation> {
     use unqlite::{Cursor, UnQLite};
 
     // open the database in which we store the velocities
@@ -232,6 +232,12 @@ async fn show_stored_velocities() {
         maybe_entry = record.next();
     }
 
+    // return the found velocity entries
+    found_entries
+}
+
+async fn show_stored_velocities() {
+    let found_entries = get_stored_velocities().await;
     let _ = print_stdout(found_entries.with_title());
 }
 
@@ -244,6 +250,72 @@ async fn show_velocity(config: &Configuration) {
         }]
         .with_title(),
     );
+}
+
+fn get_largest_velocity(input: &Vec<SprintVelocityInformation>) -> u32 {
+    input
+        .iter()
+        .map(|entry| entry.current_velocity as u32)
+        .max()
+        .unwrap()
+        + 1
+}
+
+fn get_current_velocities_as_array(input: &Vec<SprintVelocityInformation>) -> Vec<(u32, u32)> {
+    input
+        .iter()
+        .map(|entry| (entry.sprint_number as u32, entry.current_velocity as u32))
+        .collect()
+}
+
+fn get_running_velocities_as_array(input: &Vec<SprintVelocityInformation>) -> Vec<(u32, u32)> {
+    input
+        .iter()
+        .map(|entry| (entry.sprint_number as u32, entry.running_velocity as u32))
+        .collect()
+}
+
+async fn plot_velocity_graph(output_file_name: &String, width: u32, height: u32) {
+    use plotters::prelude::*;
+
+    // get the velocities we want to plot
+    let velocity_entries = get_stored_velocities().await;
+
+    // define the area on which we can draw our graphs
+    let root_area = BitMapBackend::new(output_file_name, (width, height)).into_drawing_area();
+    root_area.fill(&WHITE);
+
+    // configure the chart itself (without the actual data)
+    let mut chart = ChartBuilder::on(&root_area)
+        .x_label_area_size(35)
+        .y_label_area_size(40)
+        .margin(5)
+        .caption("Team velocity", ("sans-serif", 50.0))
+        .build_cartesian_2d(
+            (1u32..(velocity_entries.len() as u32)).into_segmented(),
+            0u32..get_largest_velocity(&velocity_entries),
+        )
+        .unwrap();
+
+    // draw the chart boundaries
+    chart
+        .configure_mesh()
+        .disable_x_mesh()
+        .bold_line_style(&WHITE.mix(0.3))
+        .y_desc("Velocity")
+        .x_desc("Sprint #")
+        .axis_desc_style(("sans-serif", 15))
+        .draw();
+
+    // draw the chart data
+    chart.draw_series(
+        Histogram::vertical(&chart)
+            .style(RED.mix(0.5).filled())
+            .data(get_current_velocities_as_array(&velocity_entries)),
+    );
+
+    // to avoid the IO failure being ignored silently, we manually call the present function
+    root_area.present();
 }
 
 #[tokio::main]
@@ -280,6 +352,9 @@ async fn main() -> Result<(), ReqwestError> {
         }
         SubCommand::ShowStoredVelocities(_) => {
             show_stored_velocities().await;
+        }
+        SubCommand::PlotVelocityGraph(options) => {
+            plot_velocity_graph(&options.output_file_name, 1024, 768).await;
         }
     }
 
