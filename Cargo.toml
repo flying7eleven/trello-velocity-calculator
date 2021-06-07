@@ -1,6 +1,6 @@
 [package]
 name = "trello-velocity-calculator"
-version = "2021.5.0"
+version = "2021.6.7"
 authors = ["Tim Janke <tim+github@janke.biz>"]
 edition = "2018"
 
