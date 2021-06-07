@@ -293,7 +293,7 @@ async fn plot_velocity_graph(output_file_name: &String, width: u32, height: u32)
 
     // define the area on which we can draw our graphs
     let root_area = BitMapBackend::new(output_file_name, (width, height)).into_drawing_area();
-    root_area.fill(&WHITE);
+    let _ = root_area.fill(&WHITE);
     let root_area = root_area
         .titled("Team velocity", ("sans-serif", 50.0))
         .unwrap();
@@ -311,7 +311,7 @@ async fn plot_velocity_graph(output_file_name: &String, width: u32, height: u32)
         .unwrap();
 
     // draw the chart boundaries
-    chart
+    let _ = chart
         .configure_mesh()
         .disable_x_mesh()
         .bold_line_style(&WHITE.mix(0.3))
@@ -321,14 +321,14 @@ async fn plot_velocity_graph(output_file_name: &String, width: u32, height: u32)
         .draw();
 
     // draw the chart data
-    chart.draw_series(
+    let _ = chart.draw_series(
         Histogram::vertical(&chart)
             .style(RED.mix(0.5).filled())
             .data(get_current_velocities_as_array(&velocity_entries)),
     );
 
     // to avoid the IO failure being ignored silently, we manually call the present function
-    root_area.present();
+    let _ = root_area.present();
 }
 
 #[tokio::main]
