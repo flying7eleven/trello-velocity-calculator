@@ -9,6 +9,11 @@ version = "0.11"
 default-features = false
 features = ["native-tls", "json"]
 
+[dependencies.plotters]
+version = "0.3"
+default-features = false
+features = ["bitmap_backend", "bitmap_encoder", "histogram"]
+
 [dependencies.lazy_static]
 version = "1.4"
 default-features = false
