@@ -13,6 +13,10 @@ features = ["native-tls", "json"]
 version = "1.4"
 default-features = false
 
+[dependencies.ncurses]
+version = "5.101"
+default-features = false
+
 [dependencies.unqlite]
 version = "1.5"
 default-features = false
